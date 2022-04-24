@@ -5,6 +5,8 @@ import TOKEN20Address from "./contractsData/TOKEN20-address.json";
 import "./App.css";
 
 function App() {
+  const [txs, setTxs] = useState([]);
+  const [contractListened, setContractListened] = useState();
   const [isWalletInstalled, setIsWalletInstalled] = useState(false);
   const [account, setAccount] = useState(null);
   const [contractInfo, setContractInfo] = useState({
@@ -83,7 +85,79 @@ function App() {
     });
   };
 
-  console.log(balanceInfo);
+  //transfer method implementation
+  useEffect(() => {
+    if (contractInfo.address !== "-") {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const erc20 = new ethers.Contract(
+        contractInfo.address,
+        Token20Abi.abi,
+        provider
+      );
+
+      erc20.on("Transfer", (from, to, amount, event) => {
+        // console.log({ from, to, amount, event });
+        setTxs((currentTxs) => [
+          ...currentTxs,
+          {
+            txHash: event.transactionHash,
+            from,
+            to,
+            amount: String(amount),
+          },
+        ]);
+        setContractListened(erc20);
+        return () => {
+          contractListened.removeAllListeners();
+        };
+      });
+    }
+  }, [contractInfo.address]);
+
+  const handleTransfer = async (e) => {
+    e.preventDefault();
+    const data = new FormData(e.target);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const erc20 = new ethers.Contract(
+      contractInfo.address,
+      Token20Abi.abi,
+      signer
+    );
+    await erc20.transfer(
+      data.get("recipient"),
+      ethers.utils.parseEther(data.get("amount"))
+    );
+  };
+
+  const handleTransferFrom = async (e) => {
+    e.preventDefault();
+    const data = new FormData(e.target);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const erc20 = new ethers.Contract(
+      contractInfo.address,
+      Token20Abi.abi,
+      signer
+    );
+
+    let options = {
+      gasLimit: 60000,
+      gasPrice: ethers.utils.parseUnits("100", "gwei"),
+    };
+
+    // address spender, uint256 amount
+    await erc20.approve(account, ethers.utils.parseEther(data.get("amount-2")));
+
+    await erc20.transferFrom(
+      account,
+      data.get("recipient-2"),
+      ethers.utils.parseEther(data.get("amount-2")),
+      options
+    );
+  };
 
   if (account === null) {
     return (
@@ -160,6 +234,51 @@ function App() {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div>
+        <h1>Transfer</h1>
+        <form onSubmit={handleTransfer}>
+          <div>
+            <input
+              type="text"
+              name="recipient"
+              placeholder="Recipient address"
+            />
+          </div>
+          <div>
+            <input type="text" name="amount" placeholder="Amount to transfer" />
+          </div>
+          <footer>
+            <button type="submit">Transfer</button>
+          </footer>
+        </form>
+      </div>
+
+      <div>
+        <h1>Transfer From</h1>
+        <form onSubmit={handleTransferFrom}>
+          {/* <div>
+            <input type="text" name="trader" placeholder="Trader address" />
+          </div> */}
+          <div>
+            <input
+              type="text"
+              name="recipient-2"
+              placeholder="Recipient address"
+            />
+          </div>
+          <div>
+            <input
+              type="text"
+              name="amount-2"
+              placeholder="Amount to transfer"
+            />
+          </div>
+          <footer>
+            <button type="submit">Transfer</button>
+          </footer>
+        </form>
       </div>
     </div>
   );
