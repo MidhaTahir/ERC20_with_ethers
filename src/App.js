@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
-import { Contract, providers, ethers } from "ethers";
+import { ethers } from "ethers";
 import Token20Abi from "./contractsData/TOKEN20.json";
-import TOKEN20Address from "./contractsData/TOKEN20-address.json";
+// import TOKEN20Address from "./contractsData/TOKEN20-address.json";
 import "./App.css";
+import TxList from "./TxList";
+
+let options = {
+  gasLimit: 60000,
+  gasPrice: ethers.utils.parseUnits("100", "gwei"),
+};
 
 function App() {
   const [txs, setTxs] = useState([]);
@@ -127,7 +133,8 @@ function App() {
     );
     await erc20.transfer(
       data.get("recipient"),
-      ethers.utils.parseEther(data.get("amount"))
+      ethers.utils.parseEther(data.get("amount")),
+      options
     );
   };
 
@@ -142,11 +149,6 @@ function App() {
       Token20Abi.abi,
       signer
     );
-
-    let options = {
-      gasLimit: 60000,
-      gasPrice: ethers.utils.parseUnits("100", "gwei"),
-    };
 
     // address spender, uint256 amount
     await erc20.approve(account, ethers.utils.parseEther(data.get("amount-2")));
@@ -279,6 +281,11 @@ function App() {
             <button type="submit">Transfer</button>
           </footer>
         </form>
+      </div>
+
+      <div>
+        <h1>Recent transactions</h1>
+        <TxList txs={txs} />
       </div>
     </div>
   );
