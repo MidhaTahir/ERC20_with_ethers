@@ -5,12 +5,14 @@ export default function TxList({ txs }) {
   return (
     <>
       {txs.map((item, idx) => (
-        <div key={idx}>
-          <div>
-            <p>From: {item.from}</p>
-            <p>To: {item.to}</p>
-            <p>Amount: {ethers.utils.formatEther(item.amount)} ETH</p>
-          </div>
+        <div key={idx} className="py-2">
+          <ul className="list-group list-group-flush">
+            <li className="list-group-item">From: {item.from}</li>
+            <li className="list-group-item">To: {item.to}</li>
+            <li className="list-group-item">
+              Amount: {ethers.utils.formatEther(item.amount)} ETH
+            </li>
+          </ul>
         </div>
       ))}
     </>

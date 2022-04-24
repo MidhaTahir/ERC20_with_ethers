@@ -4,6 +4,7 @@ import Token20Abi from "./contractsData/TOKEN20.json";
 // import TOKEN20Address from "./contractsData/TOKEN20-address.json";
 import TxList from "./TxList";
 import "./App.css";
+import { Tab, Tabs } from "react-bootstrap";
 
 let options = {
   gasLimit: 60000,
@@ -163,7 +164,7 @@ function CWallet() {
 
   if (account === null) {
     return (
-      <div className="App centre-screen">
+      <div className="centre-screen">
         {/* if metamask is installed but not connection */}
         {isWalletInstalled ? (
           <div className="card border-light mb-3">
@@ -178,14 +179,14 @@ function CWallet() {
             </div>
           </div>
         ) : (
-          // if metamask is not installed
+          // if metamask is not installed (see why not working)
           <div className="card border-light mb-3">
             <div className="card-header">You need to Install a Wallet</div>
             <div className="card-body">
               <p className="card-title mb-3">We recommend Metamask wallet</p>
               <p className="card-text"></p>
               <a
-                // href="https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn"
+                href="https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn"
                 className="btn btn-secondary"
               >
                 Install Metamask wallet
@@ -198,114 +199,151 @@ function CWallet() {
   }
 
   return (
-    <div className="App">
+    <div>
       {/* metamask is installed and connected */}
-      <p>Connected as: {account}</p>
+
+      <div className="mt-3 alert alert-dismissible alert-success">
+        <strong>Well done!</strong> You've successfully connected your wallet{" "}
+        <p>Connected as: {account}</p>
+      </div>
 
       {/* Get contract details section */}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <input
-            type="text"
-            name="address"
-            placeholder="Enter ERC20 contract address"
-          />
+      <div className="card border-light mb-3">
+        <div className="card-header">Contract Details</div>
+        <div className="card-body">
+          <form onSubmit={handleSubmit}>
+            <div className="row align-items-center">
+              <input
+                type="text"
+                name="address"
+                placeholder="Enter ERC20 contract address"
+                className="col form-control"
+              />
+
+              <button type="submit" className="col-4 btn btn-primary my-2">
+                Get token info
+              </button>
+            </div>
+          </form>
+          <div>
+            <table className="table table-hover">
+              <thead>
+                <tr className="table-dark">
+                  <th>Name</th>
+                  <th>Symbol</th>
+                  <th>Total supply</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="table-secondary">
+                  <th>{contractInfo.tokenName}</th>
+                  <td>{contractInfo.tokenSymbol}</td>
+                  <td>{String(contractInfo.totalSupply)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <button
-          type="submit"
-          className="btn btn-primary submit-button focus:ring focus:outline-none w-full"
-        >
-          Get token info
-        </button>
-      </form>
-      <div>
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Symbol</th>
-              <th>Total supply</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th>{contractInfo.tokenName}</th>
-              <td>{contractInfo.tokenSymbol}</td>
-              <td>{String(contractInfo.totalSupply)}</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
 
       {/* Get My Balance Section */}
-      <div className="p-4">
-        <button onClick={getBalance} type="submit">
-          Get my balance
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="table w-full">
-          <thead>
-            <tr>
-              <th>Address</th>
-              <th>Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th>{balanceInfo.address}</th>
-              <td>{balanceInfo.balance} ETH</td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="card border-light mb-3">
+        <div className="card-header">Balance Details</div>
+        <div className="card-body">
+          <button
+            onClick={getBalance}
+            type="submit"
+            className="w-100 mb-2 btn btn-primary"
+          >
+            Get my balance
+          </button>
+
+          <div>
+            <table className="table table-hover">
+              <thead>
+                <tr className="table-dark">
+                  <th>Address</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="table-secondary">
+                  <th>{balanceInfo.address}</th>
+                  <td>{balanceInfo.balance && `${balanceInfo.balance}ETH`}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <h1>Transfer</h1>
-        <form onSubmit={handleTransfer}>
+      <Tabs
+        defaultActiveKey="transfer"
+        id="uncontrolled-tab-example"
+        className="mb-3"
+      >
+        <Tab eventKey="transfer" title="Transfer">
           <div>
-            <input
-              type="text"
-              name="recipient"
-              placeholder="Recipient address"
-            />
+            <h1>Transfer</h1>
+            <form onSubmit={handleTransfer}>
+              <div>
+                <input
+                  type="text"
+                  name="recipient"
+                  placeholder="Recipient address"
+                  className="form-control"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="amount"
+                  placeholder="Amount to transfer"
+                  className="form-control"
+                />
+              </div>
+              <footer>
+                <button type="submit" className="mt-2 btn btn-primary">
+                  Transfer
+                </button>
+              </footer>
+            </form>
           </div>
+        </Tab>
+        <Tab eventKey="transferFrom" title="TransferFrom">
           <div>
-            <input type="text" name="amount" placeholder="Amount to transfer" />
-          </div>
-          <footer>
-            <button type="submit">Transfer</button>
-          </footer>
-        </form>
-      </div>
-
-      <div>
-        <h1>Transfer From</h1>
-        <form onSubmit={handleTransferFrom}>
-          {/* <div>
+            <h1>Transfer From</h1>
+            <form onSubmit={handleTransferFrom}>
+              {/* <div>
             <input type="text" name="trader" placeholder="Trader address" />
           </div> */}
-          <div>
-            <input
-              type="text"
-              name="recipient-2"
-              placeholder="Recipient address"
-            />
+              <div>
+                <input
+                  type="text"
+                  name="recipient-2"
+                  placeholder="Recipient address"
+                  className="form-control"
+                />
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="amount-2"
+                  placeholder="Amount to transfer"
+                  className="form-control"
+                />
+              </div>
+              <footer>
+                <button type="submit" className="mt-2 btn btn-primary">
+                  Transfer
+                </button>
+              </footer>
+            </form>
           </div>
-          <div>
-            <input
-              type="text"
-              name="amount-2"
-              placeholder="Amount to transfer"
-            />
-          </div>
-          <footer>
-            <button type="submit">Transfer</button>
-          </footer>
-        </form>
-      </div>
+        </Tab>
+      </Tabs>
 
-      <div>
+      <div className="mt-2">
         <h1>Recent transactions</h1>
         <TxList txs={txs} />
       </div>
