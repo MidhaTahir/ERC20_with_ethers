@@ -1,0 +1,14 @@
+.centre-screen {
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.centre-screen > .card {
+  text-align: center;
+}
+
+.card > .card-body {
+  padding: 60px;
+}
