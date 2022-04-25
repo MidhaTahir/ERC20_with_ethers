@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
+import Jazzicon, { jsNumberForAddress } from "react-jazzicon";
+import { Tab, Tabs } from "react-bootstrap";
+import { NonceManager } from "@ethersproject/experimental";
 import Token20Abi from "./contractsData/TOKEN20.json";
 // import TOKEN20Address from "./contractsData/TOKEN20-address.json";
 import TxList from "./TxList";
 import "./App.css";
-import { Tab, Tabs } from "react-bootstrap";
 
 let options = {
   gasLimit: 60000,
@@ -52,15 +54,12 @@ function CWallet() {
     e.preventDefault();
     const data = new FormData(e.target);
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-
     const filledContractAddress = data.get("address");
-
     const erc20 = new ethers.Contract(
       filledContractAddress,
       Token20Abi.abi,
       provider
     );
-
     const tokenName = await erc20.name();
     const tokenSymbol = await erc20.symbol();
     const totalSupply = await erc20.totalSupply();
@@ -94,7 +93,7 @@ function CWallet() {
 
   //transfer method implementation
   useEffect(() => {
-    if (contractInfo.address !== "-") {
+    if (contractInfo.address !== "") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const erc20 = new ethers.Contract(
         contractInfo.address,
@@ -127,10 +126,13 @@ function CWallet() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
+    const managedSigner = new NonceManager(signer);
+    // console.log(managedSigner);
+    console.log(signer);
     const erc20 = new ethers.Contract(
       contractInfo.address,
       Token20Abi.abi,
-      signer
+      managedSigner
     );
     await erc20.transfer(
       data.get("recipient"),
@@ -145,17 +147,22 @@ function CWallet() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
+    const managedSigner = new NonceManager(signer);
     const erc20 = new ethers.Contract(
       contractInfo.address,
       Token20Abi.abi,
-      signer
+      managedSigner
     );
 
+    const signerAddress = await signer.getAddress();
     // address spender, uint256 amount
-    await erc20.approve(account, ethers.utils.parseEther(data.get("amount-2")));
+    await erc20.approve(
+      signerAddress,
+      ethers.utils.parseEther(data.get("amount-2"))
+    );
 
     await erc20.transferFrom(
-      account,
+      signerAddress,
       data.get("recipient-2"),
       ethers.utils.parseEther(data.get("amount-2")),
       options
@@ -204,7 +211,13 @@ function CWallet() {
 
       <div className="mt-3 alert alert-dismissible alert-success">
         <strong>Well done!</strong> You've successfully connected your wallet{" "}
-        <p>Connected as: {account}</p>
+        <div>
+          <p>
+            Connected as:{" "}
+            <Jazzicon diameter={20} seed={jsNumberForAddress(account)} />
+            {account}
+          </p>
+        </div>
       </div>
 
       {/* Get contract details section */}
