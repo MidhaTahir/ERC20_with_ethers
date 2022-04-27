@@ -1,11 +1,13 @@
+// import TOKEN20Address from "./contractsData/TOKEN20-address.json";
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { ethers } from "ethers";
 import Jazzicon, { jsNumberForAddress } from "react-jazzicon";
 import { Tab, Tabs } from "react-bootstrap";
 import { NonceManager } from "@ethersproject/experimental";
 import Token20Abi from "./contractsData/TOKEN20.json";
-// import TOKEN20Address from "./contractsData/TOKEN20-address.json";
 import TxList from "./TxList";
+import ErrorComponent from "./ErrorComponent";
 import "./App.css";
 
 let options = {
@@ -123,50 +125,67 @@ function CWallet() {
   const handleTransfer = async (e) => {
     e.preventDefault();
     const data = new FormData(e.target);
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    const managedSigner = new NonceManager(signer);
-    // console.log(managedSigner);
-    console.log(signer);
-    const erc20 = new ethers.Contract(
-      contractInfo.address,
-      Token20Abi.abi,
-      managedSigner
-    );
-    await erc20.transfer(
-      data.get("recipient"),
-      ethers.utils.parseEther(data.get("amount")),
-      options
-    );
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      // const managedSigner = new NonceManager(signer);
+      // console.log(managedSigner);
+      console.log(signer);
+      const erc20 = new ethers.Contract(
+        contractInfo.address,
+        Token20Abi.abi,
+        signer
+      );
+      const tx20 = await erc20.transfer(
+        data.get("recipient"),
+        ethers.utils.parseEther(data.get("amount"))
+        // options
+      );
+      console.log(tx20);
+      const waitedValue = await tx20.wait();
+      console.log(waitedValue);
+    } catch (err) {
+      console.log(err);
+      toast.error(
+        "Oops! Transaction Failed due to some issue. Please try again later"
+      );
+    }
   };
 
   const handleTransferFrom = async (e) => {
     e.preventDefault();
     const data = new FormData(e.target);
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner();
-    const managedSigner = new NonceManager(signer);
-    const erc20 = new ethers.Contract(
-      contractInfo.address,
-      Token20Abi.abi,
-      managedSigner
-    );
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const managedSigner = new NonceManager(signer);
+      const erc20 = new ethers.Contract(
+        contractInfo.address,
+        Token20Abi.abi,
+        managedSigner
+      );
 
-    const signerAddress = await signer.getAddress();
-    // address spender, uint256 amount
-    await erc20.approve(
-      signerAddress,
-      ethers.utils.parseEther(data.get("amount-2"))
-    );
+      const signerAddress = await signer.getAddress();
+      // address spender, uint256 amount
+      await erc20.approve(
+        signerAddress,
+        ethers.utils.parseEther(data.get("amount-2"))
+      );
 
-    await erc20.transferFrom(
-      signerAddress,
-      data.get("recipient-2"),
-      ethers.utils.parseEther(data.get("amount-2")),
-      options
-    );
+      await erc20.transferFrom(
+        signerAddress,
+        data.get("recipient-2"),
+        ethers.utils.parseEther(data.get("amount-2")),
+        options
+      );
+    } catch (err) {
+      console.log(err);
+      toast.error(
+        "Oops! Transaction Failed due to some issue. Please try again later"
+      );
+    }
   };
 
   if (account === null) {
@@ -207,8 +226,10 @@ function CWallet() {
 
   return (
     <div>
-      {/* metamask is installed and connected */}
+      {/* if any error exist after transfer */}
+      <ErrorComponent />
 
+      {/* metamask is installed and connected */}
       <div className="mt-3 alert alert-dismissible alert-success">
         <strong>Well done!</strong> You've successfully connected your wallet{" "}
         <div>

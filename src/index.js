@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "bootswatch/dist/quartz/bootstrap.min.css";
+import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
 
 ReactDOM.render(
