@@ -115,10 +115,10 @@ function CWallet() {
           },
         ]);
         setContractListened(erc20);
-        return () => {
-          contractListened.removeAllListeners();
-        };
       });
+      return () => {
+        contractListened.removeAllListeners();
+      };
     }
   }, [contractInfo.address]);
 
@@ -139,7 +139,7 @@ function CWallet() {
       );
       const tx20 = await erc20.transfer(
         data.get("recipient"),
-        ethers.utils.parseEther(data.get("amount"))
+        ethers.utils.parseEther(data.get("amount")) // use parseUtils instead of this
         // options
       );
       console.log(tx20);
@@ -205,7 +205,7 @@ function CWallet() {
             </div>
           </div>
         ) : (
-          // if metamask is not installed (see why not working)
+          // if metamask is not installed
           <div className="card border-light mb-3">
             <div className="card-header">You need to Install a Wallet</div>
             <div className="card-body">
